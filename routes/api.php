@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LeadsFormController;
+use App\Http\Middleware\ZohoCRMMiddleware;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,4 +16,6 @@ use App\Http\Controllers\LeadsFormController;
 |
 */
 
-Route::post('/leads', LeadsFormController::class);
+Route::post('/leads', function (Request $request) {
+    return app(LeadsFormController::class)($request);
+})->middleware(ZohoCRMMiddleware::class);
