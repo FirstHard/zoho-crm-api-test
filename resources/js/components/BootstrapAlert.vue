@@ -1,7 +1,7 @@
 <template>
   <div v-if="message" :class="[alertType, 'alert alert-dismissible fade show']" role="alert">
-    {{ message }}
     <button type="button" class="btn-close" @click="dismissAlert" aria-label="Close"></button>
+    {{ message }}
   </div>
 </template>
 

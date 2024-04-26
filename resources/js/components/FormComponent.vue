@@ -12,14 +12,12 @@
               name="dealName"
               class="form-control"
               v-model="formData.dealName"
-              :rules="[validateDealName,validateDealChars,validateDealMaxLengts]"
+              :rules="[validateDealName, validateDealChars, validateDealMaxLengts]"
               placeholder="Please enter the name of the deal"
               required
             />
             <div class="form-text">Letters, numbers, spaces, apostrophes, and hyphens are allowed. Maximum 255 characters.</div>
-            <ErrorMessage class="invalid-field" as="div" name="dealName" v-slot="{ veeMessage }">
-              <span>{{ veeMessage }}</span>
-            </ErrorMessage>
+            <ErrorMessage name="dealName" as="div" class="invalid-field" v-slot="{ message }">{{ message }}</ErrorMessage>
           </div>
           <div class="mb-3">
             <label for="dealStage" class="form-label">Deal Stage:*</label>
@@ -29,7 +27,7 @@
               aria-label="Deal Stage"
               v-model="formData.dealStage"
               name="dealStage"
-              :rules="validateStage"
+              :rules="[validateStage]"
               as="select"
               required
             >
@@ -45,9 +43,7 @@
               <option value="Closed Lost to Competition">Closed Lost to Competition</option>
             </Field>
             <div class="form-text">Please select the stage of the deal.</div>
-            <ErrorMessage as="div" name="dealStage" v-slot="{ veeMessage }">
-              <span class="invalid-field">{{ veeMessage }}</span>
-            </ErrorMessage>
+            <ErrorMessage name="dealStage" as="div" class="invalid-field" v-slot="{ message }">{{ message }}</ErrorMessage>
           </div>
           <div class="mb-3">
             <label for="dealClosingDate" class="form-label">Select Closing Deal Date:*</label>
@@ -57,13 +53,11 @@
               name="dealClosingDate"
               class="form-control"
               v-model="formData.dealClosingDate"
-              :rules="validateClosingDate"
+              :rules="[validateClosingDate]"
               required
             />
             <div class="form-text">Please select the closing date of the deal.</div>
-            <ErrorMessage as="div" name="dealClosingDate" v-slot="{ veeMessage }">
-              <span class="invalid-field">{{ veeMessage }}</span>
-            </ErrorMessage>
+            <ErrorMessage name="dealClosingDate" as="div" class="invalid-field" v-slot="{ message }">{{ message }}</ErrorMessage>
           </div>
           <div class="mb-3">
             <label for="accountName" class="form-label">Account Name:*</label>
@@ -73,15 +67,13 @@
               name="accountName"
               class="form-control"
               v-model="formData.accountName"
-              :rules="[validateAccountName,validateAccountChars,validateAccountMaxLengts]"
+              :rules="[validateAccountName, validateAccountChars, validateAccountMaxLengts]"
               placeholder="Please enter the name of the account"
               maxlength="255"
               required
             />
             <div class="form-text">Letters, numbers, spaces, apostrophes, and hyphens are allowed. Maximum 255 characters.</div>
-            <ErrorMessage as="div" name="accountName" v-slot="{ veeMessage }">
-              <span class="invalid-field">{{ veeMessage }}</span>
-            </ErrorMessage>
+            <ErrorMessage name="accountName" as="div" class="invalid-field" v-slot="{ message }">{{ message }}</ErrorMessage>
           </div>
           <div class="mb-3">
             <label for="accountWebsite" class="form-label">Account Website:*</label>
@@ -91,16 +83,14 @@
               name="accountWebsite"
               class="form-control"
               v-model="formData.accountWebsite"
-              :rules="[validateUrl,validateUrlChars]"
+              :rules="[validateUrl, validateUrlChars]"
               placeholder="Please enter the website of the account"
               required
             />
             <div class="form-text">
               Example: http://www.example.com. Must start with http://www., https://www., ftp://www., www., http://, https://, or ftp://
             </div>
-            <ErrorMessage as="div" name="accountWebsite" v-slot="{ veeMessage }">
-              <span class="invalid-field">{{ veeMessage }}</span>
-            </ErrorMessage>
+            <ErrorMessage name="accountWebsite" as="div" class="invalid-field" v-slot="{ message }">{{ message }}</ErrorMessage>
           </div>
           <div class="mb-3">
             <label for="accountPhone" class="form-label">Account Phone:*</label>
@@ -110,7 +100,7 @@
               name="accountPhone"
               class="form-control"
               v-model="formData.accountPhone"
-              :rules="[validatePhone,validatePhoneChars]"
+              :rules="[validatePhone, validatePhoneChars]"
               placeholder="Please enter the phone number of the account"
               maxlength="30"
               required
@@ -119,13 +109,9 @@
               Allowed characters: numbers, plus sign (+), hyphens (-), parentheses (), spaces, commas (,), semicolons (;), and pound sign (#). Maximum 30
               characters.
             </div>
-            <ErrorMessage as="div" name="accountPhone" v-slot="{ veeMessage }">
-              <span class="invalid-field">{{ veeMessage }}</span>
-            </ErrorMessage>
+            <ErrorMessage name="accountPhone" as="div" class="invalid-field" v-slot="{ message }">{{ message }}</ErrorMessage>
           </div>
-          <div v-if="alertMessage" :class="[alertType, 'alert']">
-            <BootstrapAlert :message="alertMessage" :type="alertType" v-if="showAlert" @dismiss="dismissAlert" />
-          </div>
+          <BootstrapAlert :message="alertMessage" :type="alertType" v-if="showAlert" @dismiss="dismissAlert" />
           <button type="submit" class="btn btn-primary">Submit</button>
         </Form>
       </div>
@@ -135,7 +121,7 @@
 
 <script>
 import BootstrapAlert from "./BootstrapAlert.vue";
-import { Form, Field, ErrorMessage } from "vee-validate";
+import { Form, Field, ErrorMessage, configure } from "vee-validate";
 
 export default {
   name: "FormComponent",
@@ -160,8 +146,10 @@ export default {
       alertType: "danger",
       isSubmitting: false,
       message: "",
-      veeMessage: "",
     };
+  },
+  configure: {
+    validity: true,
   },
   methods: {
     onSubmit(values) {
@@ -173,6 +161,7 @@ export default {
           this.alertType = "success";
           this.alertMessage = response.data.message;
           this.showAlert = true;
+          this.$refs.form.resetForm();
           this.clearForm();
         })
         .catch((error) => {
