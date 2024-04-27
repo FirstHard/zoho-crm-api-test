@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col-12 col-lg-10 offset-lg-1 p-3 border rounded-1">
         <h1>Create Deal and Account entries</h1>
-        <Form @submit="onSubmit">
+        <Form ref="dealsForm" @submit="onSubmit" name="dealsForm" :validation-schema="schema" v-slot="{ meta, errors }" id="dealsForm">
           <div class="mb-3">
             <label for="dealName" class="form-label">Deal Name:*</label>
             <Field
@@ -11,25 +11,23 @@
               id="dealName"
               name="dealName"
               class="form-control"
+              :class="{ 'is-invalid': errors.dealName }"
               v-model="formData.dealName"
-              :rules="[validateDealName, validateDealChars, validateDealMaxLengts]"
               placeholder="Please enter the name of the deal"
-              required
             />
             <div class="form-text">Letters, numbers, spaces, apostrophes, and hyphens are allowed. Maximum 255 characters.</div>
-            <ErrorMessage name="dealName" as="div" class="invalid-field" v-slot="{ message }">{{ message }}</ErrorMessage>
+            <ErrorMessage name="dealName" as="div" class="invalid-field">{{ errors.dealName }}</ErrorMessage>
           </div>
           <div class="mb-3">
             <label for="dealStage" class="form-label">Deal Stage:*</label>
             <Field
-              class="form-select"
+              class="form-control form-select"
+              :class="{ 'is-invalid': errors.dealStage }"
               id="dealStage"
               aria-label="Deal Stage"
               v-model="formData.dealStage"
               name="dealStage"
-              :rules="[validateStage]"
               as="select"
-              required
             >
               <option value="" disabled selected>Please select Deal Stage:</option>
               <option value="Qualification">Qualification</option>
@@ -52,9 +50,8 @@
               id="dealClosingDate"
               name="dealClosingDate"
               class="form-control"
+              :class="{ 'is-invalid': errors.dealClosingDate }"
               v-model="formData.dealClosingDate"
-              :rules="[validateClosingDate]"
-              required
             />
             <div class="form-text">Please select the closing date of the deal.</div>
             <ErrorMessage name="dealClosingDate" as="div" class="invalid-field" v-slot="{ message }">{{ message }}</ErrorMessage>
@@ -66,11 +63,10 @@
               id="accountName"
               name="accountName"
               class="form-control"
+              :class="{ 'is-invalid': errors.accountName }"
               v-model="formData.accountName"
-              :rules="[validateAccountName, validateAccountChars, validateAccountMaxLengts]"
               placeholder="Please enter the name of the account"
               maxlength="255"
-              required
             />
             <div class="form-text">Letters, numbers, spaces, apostrophes, and hyphens are allowed. Maximum 255 characters.</div>
             <ErrorMessage name="accountName" as="div" class="invalid-field" v-slot="{ message }">{{ message }}</ErrorMessage>
@@ -82,10 +78,9 @@
               id="accountWebsite"
               name="accountWebsite"
               class="form-control"
+              :class="{ 'is-invalid': errors.accountWebsite }"
               v-model="formData.accountWebsite"
-              :rules="[validateUrl, validateUrlChars]"
               placeholder="Please enter the website of the account"
-              required
             />
             <div class="form-text">
               Example: http://www.example.com. Must start with http://www., https://www., ftp://www., www., http://, https://, or ftp://
@@ -99,11 +94,10 @@
               id="accountPhone"
               name="accountPhone"
               class="form-control"
+              :class="{ 'is-invalid': errors.accountPhone }"
               v-model="formData.accountPhone"
-              :rules="[validatePhone, validatePhoneChars]"
               placeholder="Please enter the phone number of the account"
               maxlength="30"
-              required
             />
             <div class="form-text">
               Allowed characters: numbers, plus sign (+), hyphens (-), parentheses (), spaces, commas (,), semicolons (;), and pound sign (#). Maximum 30
@@ -121,7 +115,98 @@
 
 <script>
 import BootstrapAlert from "./BootstrapAlert.vue";
-import { Form, Field, ErrorMessage, configure } from "vee-validate";
+import { Form, Field, ErrorMessage, useForm, useField, useResetForm } from "vee-validate";
+import * as Yup from "yup";
+
+export default {
+  name: "FormComponent",
+  components: {
+    BootstrapAlert,
+    Form,
+    Field,
+    ErrorMessage,
+  },
+  data() {
+    const schema = Yup.object().shape({
+      dealName: Yup.string().required("The Deal Name field is required"),
+      dealStage: Yup.string().required("The Deal Stage selecting required"),
+      dealClosingDate: Yup.string().required("The Closing Date of Deal is required"),
+      accountName: Yup.string().required("The Account Name is required"),
+      accountWebsite: Yup.string().required("The Account Website url is required"),
+      accountPhone: Yup.string().required("The Account Phone number is required"),
+    });
+    const { meta, errors } = useForm();
+
+    const resetForm = useResetForm();
+    return {
+      schema,
+      resetForm,
+      formData: {
+        dealName: "",
+        dealStage: "",
+        dealClosingDate: "",
+        accountName: "",
+        accountWebsite: "",
+        accountPhone: "",
+      },
+      showAlert: false,
+      alertMessage: "",
+      alertType: "danger",
+      isSubmitting: false,
+      message: "",
+      errors,
+      meta,
+    };
+  },
+  methods: {
+    onSubmit(values, actions) {
+      this.isSubmitting = true;
+
+      axios
+        .post("/api/leads", this.formData)
+        .then((response) => {
+          this.isSubmitting = false;
+          this.alertType = "success";
+          this.alertMessage = response.data.message;
+          this.showAlert = true;
+          setTimeout(() => {
+            this.message = "";
+            this.alertMessage = "";
+            this.showAlert = false;
+          }, 5000);
+          this.$nextTick(() => {
+            this.resetForm({
+              values: {
+                dealName: "",
+                dealStage: "",
+                dealClosingDate: "",
+                accountName: "",
+                accountWebsite: "",
+                accountPhone: "",
+              },
+            });
+            this.$nextTick(() => {
+              actions.resetForm();
+            });
+          });
+        })
+        .catch((error) => {
+          this.isSubmitting = false;
+          this.alertType = "danger";
+          this.alertMessage = error.response.data.message || "An error occurred while submitting the form.";
+          this.showAlert = true;
+        });
+    },
+    dismissAlert() {
+      this.message = "";
+      this.alertMessage = "";
+      this.showAlert = false;
+    },
+  },
+};
+
+/* import BootstrapAlert from "./BootstrapAlert.vue";
+import { Form, Field, ErrorMessage } from "vee-validate";
 
 export default {
   name: "FormComponent",
@@ -148,39 +233,35 @@ export default {
       message: "",
     };
   },
-  configure: {
-    validity: true,
-  },
   methods: {
     onSubmit(values) {
-      this.isSubmitting = true;
-      axios
-        .post("/api/leads", this.formData)
-        .then((response) => {
-          this.isSubmitting = false;
-          this.alertType = "success";
-          this.alertMessage = response.data.message;
-          this.showAlert = true;
-          this.$refs.form.resetForm();
-          this.clearForm();
-        })
-        .catch((error) => {
-          this.isSubmitting = false;
-          if (error.response.status === 422) {
-            this.alertType = "danger";
-            const errorMessages = Object.values(error.response.data.errors).flat();
-            this.alertMessage = errorMessages.join("\n");
-          } else {
-            this.alertType = "danger";
-            this.alertMessage = error.error;
-            console.error(error);
-          }
-          this.showAlert = true;
+    this.isSubmitting = true;
+    axios
+      .post("/api/leads", this.formData)
+      .then((response) => {
+        this.isSubmitting = false;
+        this.alertType = "success";
+        this.alertMessage = response.data.message;
+        this.showAlert = true;
+        this.formData = {};
+        this.$nextTick(() => {
+          this.$refs.dealsForm.resetForm();
         });
-    },
-    clearForm() {
-      this.formData = {};
-    },
+      })
+      .catch((error) => {
+        this.isSubmitting = false;
+        if (error.response && error.response.status === 422) {
+          this.alertType = "danger";
+          const errorMessages = Object.values(error.response.data.errors).flat();
+          this.alertMessage = errorMessages.join("\n");
+        } else {
+          this.alertType = "danger";
+          this.alertMessage = error.error;
+          console.error(error);
+        }
+        this.showAlert = true;
+      });
+  },
     dismissAlert() {
       this.showAlert = false;
     },
@@ -261,5 +342,5 @@ export default {
       return true;
     },
   },
-};
+}; */
 </script>
