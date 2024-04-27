@@ -28,7 +28,8 @@ Other mandatory fields required by the Zoho CRM system should also be present in
 
 ## How to Use:
 1. Clone the repository.
-2. Install dependencies for Laravel and Vue.js.
-3. Configure Zoho CRM API integration.
-4. Run the project locally.
-5. Access the web form and fill in the required fields to create deals and accounts in Zoho CRM.
+2. Generate the APP_KEY.
+3. Install dependencies for Laravel and Vue.js.
+4. Configure Zoho CRM API integration keys and token in .env file from .inv.example.
+5. Run the project locally.
+6. Access the web form and fill in the required fields to create deals and accounts in Zoho CRM.
