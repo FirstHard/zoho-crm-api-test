@@ -49,8 +49,6 @@ class LeadsFormController extends Controller
         if ($response->successful()) {
             $responseData = $response->json();
             $this->accountID = $responseData['data'][0]['details']['id'];
-        } else {
-            return response()->json(['success' => false, 'error' => $response->json()], $response->status());
         }
 
         // Creating deal entry - this part of the code should be extracted to a separate Service
@@ -91,7 +89,5 @@ class LeadsFormController extends Controller
                 return response()->json(['success' => false, 'error' => $response->json()], $response->status());
             }
         }
-
-        return response()->json(['message' => 'Data verified successfully'], 201);
     }
 }

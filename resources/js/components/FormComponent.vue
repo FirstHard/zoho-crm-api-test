@@ -128,12 +128,29 @@ export default {
   },
   data() {
     const schema = Yup.object().shape({
-      dealName: Yup.string().required("The Deal Name field is required"),
+      dealName: Yup.string().required("The Deal Name field is required").max(255, "Max characters: 255.")
+        .matches(
+          /^[A-Za-z0-9\s\'\-]+$/,
+          "The Deal`s name must be valid"
+        ),
       dealStage: Yup.string().required("The Deal Stage selecting required"),
       dealClosingDate: Yup.string().required("The Closing Date of Deal is required"),
-      accountName: Yup.string().required("The Account Name is required"),
-      accountWebsite: Yup.string().required("The Account Website url is required"),
-      accountPhone: Yup.string().required("The Account Phone number is required"),
+      accountName: Yup.string().required("The Account Name is required").max(255, "Max characters: 255.")
+        .matches(
+          /^[A-Za-z0-9\s\'\-]+$/,
+          "The Account`s name must be valid"
+        ),
+      accountWebsite: Yup.string()
+        .required("The Account Website url is required")
+        .matches(
+          /^(http:\/\/www\.|https:\/\/www\.|ftp:\/\/www\.|www\.|http:\/\/|https:\/\/|ftp:\/\/){1}[^\\x00-\\x19\\x22-\\x27\\x2A-\\x2C\\x2E-\\x2F\\x3A-\\x3F\\x5B-\\x5E\\x60\\x7B\\x7D-\\x7F]+(\.[^\\x00-\\x19\\x22\\x24-\\x2C\\x2E-\\x2F\\x3C\\x3E\\x40\\x5B-\\x5E\\x60\\x7B\\x7D-\\x7F]+)+([\/\?].*)*$/,
+          "The Url must be valid"
+        ),
+      accountPhone: Yup.string().required("The Account Phone number is required").max(30, "Max characters: 30.")
+        .matches(
+          /^([+]?)(?![.-])(?:[.-]?[ ]?[\da-zA-Z]+)+(?:[ ]?(?![.-])(?:[ .-]?[\da-zA-Z]+)+(?:[ -]?[\da-zA-Z]+)?)+(?:(?:[,]+)?[;]?[\da-zA-Z]+(?:[#][\da-zA-Z]+)?)?[#;]?$/,
+          "The Phone number must be valid"
+        ),
     });
     const { meta, errors } = useForm();
 
